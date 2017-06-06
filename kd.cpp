@@ -33,7 +33,7 @@ public :
 // ツリーの各ノードを扱うクラス
 class Node {
 private :
-	Point p;
+	Point point;
 	Node *left;
 	Node *right;
 public :
@@ -43,11 +43,14 @@ public :
 	}
 
 	Node(Point p) {
-		this->p = p;
+		this->point = p;
 		this->left = nullptr;
 		this->right = nullptr;
 	}
 
+	void setPoint(Point p) {
+		this->point = p;
+	}
 	void setLeft(Node *n) {
 		this->left = n;
 	}
@@ -62,10 +65,10 @@ public :
 template<typename T>
 vector<T> divisionVector(std::vector<T> v, int from, int to) {
 
-	//　分離する場所がベクターのサイズ外の場合nullを返す
+	//　分離する場所がベクターのサイズ外の場合もとのゔvectorを返す
 	if (v.size() <= from || v.size() <= to ||
 			0 > from || 0 > to || (to < from)) {
-		return NULL;
+		return v;
 	}
 
 	std::vector<T> result;
@@ -98,9 +101,14 @@ public :
 		// 中点を取る
 		Node n = Node(v[v.size() / 2]);
 		this->root = &n;
-		auto leftvector = divisionVector(v, 0, v.size() / 2 - 1);
-		auto rightvector = divisionVector(v, v.size() / 2 + 1, v.size());
-		this->root->setLeft(this->setChildren(leftvector, 1));
+		if (v.size() / 2 - 1 >= 0) {
+			auto leftvector = divisionVector(v, 0, v.size() / 2 - 1);
+			this->root->setLeft(this->setChildren(leftvector, 1));
+		}
+		if (v.size() / 2 + 1 < DATA_SIZE) {
+			auto rightvector = divisionVector(v, v.size() / 2 + 1, v.size());
+			this->root->setRight(this->setChildren(rightvector, 1));
+		}
 
 		// デバッグ用
 		// for (auto i = v.begin(); i != v.end(); i++) {
@@ -113,6 +121,33 @@ private :
 	Node *setChildren(std::vector<Point> v, int depth) {
 		// 深さが偶数のときはy軸でソートし、
 		// 基数のときはx軸でソートする。
+		if (v.size() <= 0) {
+			return nullptr;
+		}
+
+		Node *newNode = new Node();
+		if (depth % 2 == 0) {
+			sort(v.begin(), v.end(),
+				[](auto a, auto b) {
+					return a.y < b.y;
+				});
+		} else {
+			sort(v.begin(), v.end(),
+				[](auto a, auto b) {
+					return a.x < b.x;
+				});
+		}
+		newNode->setPoint(v[v.size() / 2]);
+
+		if (v.size() / 2 - 1 >= 0) {
+			auto leftvector = divisionVector(v, 0, v.size() / 2 - 1);
+			this->root->setLeft(this->setChildren(leftvector, 1));
+		}
+		if (v.size() / 2 + 1 < DATA_SIZE) {
+			auto rightvector = divisionVector(v, v.size() / 2 + 1, v.size());
+			this->root->setRight(this->setChildren(rightvector, 1));
+		}
+		return newNode;
 	}
 };
 
