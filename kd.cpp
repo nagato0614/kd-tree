@@ -28,6 +28,9 @@ public :
 		this->y = y;
 	}
 
+	void showPoint() {
+		printf("(x, y) = (%3d, %3d)\n", this->x, this->y);
+	}
 };
 
 // ツリーの各ノードを扱うクラス
@@ -51,6 +54,11 @@ public :
 	void setPoint(Point p) {
 		this->point = p;
 	}
+
+	Point getPoint() {
+		return this->point;
+	}
+
 	void setLeft(Node *n) {
 		this->left = n;
 	}
@@ -99,15 +107,18 @@ public :
 
 
 		// 中点を取る
+
 		Node n = Node(v[v.size() / 2]);
+		n.getPoint().showPoint();
+
 		this->root = &n;
 		if (v.size() / 2 - 1 >= 0) {
-			auto leftvector = divisionVector(v, 0, v.size() / 2 - 1);
+			auto leftvector = divisionVector<Point>(v, 0, v.size() / 2 - 1);
 			this->root->setLeft(this->setChildren(leftvector, 1));
 		}
 		if (v.size() / 2 + 1 < DATA_SIZE) {
-			auto rightvector = divisionVector(v, v.size() / 2 + 1, v.size());
-			this->root->setRight(this->setChildren(rightvector, 1));
+			auto rightvector = divisionVector<Point>(v, v.size() / 2 + 1, v.size());
+			//this->root->setRight(this->setChildren(rightvector, 1));
 		}
 
 		// デバッグ用
@@ -121,9 +132,6 @@ private :
 	Node *setChildren(std::vector<Point> v, int depth) {
 		// 深さが偶数のときはy軸でソートし、
 		// 基数のときはx軸でソートする。
-		if (v.size() <= 0) {
-			return nullptr;
-		}
 
 		Node *newNode = new Node();
 		if (depth % 2 == 0) {
@@ -139,14 +147,20 @@ private :
 		}
 		newNode->setPoint(v[v.size() / 2]);
 
-		if (v.size() / 2 - 1 >= 0) {
-			auto leftvector = divisionVector(v, 0, v.size() / 2 - 1);
-			this->root->setLeft(this->setChildren(leftvector, 1));
+		if (v.size() / 2 - 1 >= 0 && v.size() > 0) {
+			auto leftvector = divisionVector<Point>(v, 0, v.size() / 2 - 1);
+			newNode->setLeft(this->setChildren(leftvector, 1));
+		} else {
+			newNode->setLeft(nullptr);
 		}
-		if (v.size() / 2 + 1 < DATA_SIZE) {
-			auto rightvector = divisionVector(v, v.size() / 2 + 1, v.size());
-			this->root->setRight(this->setChildren(rightvector, 1));
+
+		if (v.size() / 2 + 1 < DATA_SIZE && v.size() > 0) {
+			auto rightvector = divisionVector<Point>(v, v.size() / 2 + 1, v.size());
+			//newNode->setRight(this->setChildren(rightvector, 1));
+		} else {
+			newNode->setRight(nullptr);
 		}
+
 		return newNode;
 	}
 };
@@ -166,6 +180,8 @@ int main(void) {
 	}
 
 	// kd木にデータをセットする
+	printf("start\n");
+
 	kd.setData(Points);
 	return 0;
 }
