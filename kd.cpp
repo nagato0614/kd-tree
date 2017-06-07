@@ -10,7 +10,7 @@
 using namespace std;
 
 // 使用するデータ数
-#define DATA_SIZE 100
+#define DATA_SIZE 1000000
 
 // 2次元座標を扱うためのクラス
 class Point {
@@ -63,10 +63,17 @@ public:
 		this->left = n;
 	}
 
+	Node *getLeft() {
+		return this->left;
+	}
+
 	void setRight(Node *n) {
 		this->right = n;
 	}
 
+	Node *getRight() {
+		return this->right;
+	}
 };
 
 // ベクターをfromからtoまで取り出する関数
@@ -74,9 +81,10 @@ template<typename T>
 vector<T> divisionVector(std::vector<T> v, int from, int to) {
 
 	//　分離する場所がベクターのサイズ外の場合もとのゔvectorを返す
-	if (v.size() <= from || v.size() <= to ||
+	if (v.size() < from || v.size() < to ||
 		0 > from || 0 > to || (to < from)) {
-		return v;
+		vector<T> zero(0);
+		return zero;
 	}
 
 	std::vector<T> result;
@@ -98,28 +106,8 @@ public:
 
 
 	void setData(std::vector<Point> v) {
-
-		// y軸に沿ってソートする
-		sort(v.begin(), v.end(),
-			[](auto a, auto b) {
-			return a.y < b.y;
-		});
-
-
-		// 中点を取る
-
-		Node n = Node(v[v.size() / 2]);
-		n.getPoint().showPoint();
-
-		this->root = &n;
-		if (v.size() / 2 - 1 >= 0) {
-			auto leftvector = divisionVector<Point>(v, 0, v.size() / 2 - 1);
-			this->root->setLeft(this->setChildren(leftvector, 1));
-		}
-		if (v.size() / 2 + 1 < DATA_SIZE) {
-			auto rightvector = divisionVector<Point>(v, v.size() / 2 + 1, v.size());
-			//this->root->setRight(this->setChildren(rightvector, 1));
-		}
+		cout << "data_size = " << v.size() << "\n\n";
+		this->root = this->setChildren(v, 0);
 
 		// デバッグ用
 		// for (auto i = v.begin(); i != v.end(); i++) {
@@ -128,14 +116,45 @@ public:
 		// }
 	}
 
+	void showTree(int n) {
+		if (n == 0) {
+			this->preOrder(this->root);
+		}
+		if (n == 1)
+			this->inOrder(this->root);
+	}
+
 private:
+
+	void preOrder(Node *root) {
+		if (root != nullptr) {
+			root->getPoint().showPoint();
+			preOrder(root->getLeft());
+			preOrder(root->getRight());
+		}
+	}
+
+	void inOrder(Node *root) {
+		if (root != nullptr) {
+			inOrder(root->getLeft());
+			root->getPoint().showPoint();
+			inOrder(root->getRight());
+		}
+	}
+
 	Node *setChildren(std::vector<Point> v, int depth) {
-		// 深さが偶数のときはy軸でソートし、
-		// 基数のときはx軸でソートする。
-		if (v.size() <= 1) {
+		cout << "depth = " << depth << endl;
+		cout << "v.size() = " << v.size() << endl;
+
+		if (v.size() == 1) {
 			Node *n = new Node();
 			n->setPoint(v[0]);
+			cout << "leaf" << endl;
+			n->getPoint().showPoint();
 			return n;
+		}
+		else if (v.size() == 0) {
+			return nullptr;
 		}
 
 		Node *newNode = new Node();
@@ -151,19 +170,34 @@ private:
 				return a.x < b.x;
 			});
 		}
+
+		printf("0 ~ %d, %d, %d ~ %d\n", v.size() / 2 - 1, v.size() / 2, v.size() / 2 + 1, v.size());
 		newNode->setPoint(v[v.size() / 2]);
+		newNode->getPoint().showPoint();
 
 		if (v.size() / 2 - 1 >= 0) {
-			auto leftvector = divisionVector<Point>(v, 0, v.size() / 2 - 1);
-			newNode->setLeft(this->setChildren(leftvector, 1));
+			auto leftvector = divisionVector<Point>(v, 0, v.size() / 2);
+			if (leftvector.size() != 0) {
+				cout << "\nleft" << endl;
+				newNode->setLeft(this->setChildren(leftvector, depth + 1));
+			}
+			else {
+				newNode->setLeft(nullptr);
+			}
 		}
 		else {
 			newNode->setLeft(nullptr);
 		}
 
-		if (v.size() / 2 + 1 < DATA_SIZE && v.size() == v.size() / 2) {
+		if (v.size() / 2 + 1 < DATA_SIZE && v.size() / 2 + 1 < v.size()) {
 			auto rightvector = divisionVector<Point>(v, v.size() / 2 + 1, v.size());
-			newNode->setRight(this->setChildren(rightvector, 1));
+			if (rightvector.size() != 0) {
+				cout << "\nright" << endl;
+				newNode->setRight(this->setChildren(rightvector, depth + 1));
+			}
+			else {
+				newNode->setRight(nullptr);
+			}
 		}
 		else {
 			newNode->setRight(nullptr);
@@ -182,14 +216,28 @@ int main(void) {
 	// kd木
 	KDTree kd;
 
+	//　重複のないランダムな座標を生成する
 	for (int i = 0; i < DATA_SIZE; i++) {
-		Point p = Point(rand() % DATA_SIZE, rand() % DATA_SIZE);
+		Point p = Point(i, rand() % DATA_SIZE);
 		Points.push_back(p);
 	}
+	shuffle(Points.begin(), Points.end(), mt19937());
+	for (int i = 0; i < DATA_SIZE; i++) {
+		Points[i].y = i;
+	}
+
 
 	// kd木にデータをセットする
 	printf("start\n");
+	//for (auto i = Points.begin(); i != Points.end(); i++) {
+	//	i->showPoint();
+	//}
 
 	kd.setData(Points);
+
+	printf("\nshow result\n");
+	kd.showTree(0);
+	printf("\n");
+	//kd.showTree(1);
 	return 0;
 }
