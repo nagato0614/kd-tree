@@ -14,7 +14,7 @@ using namespace std;
 
 // 2次元座標を扱うためのクラス
 class Point {
-public :
+public:
 	int x;
 	int y;
 
@@ -35,11 +35,11 @@ public :
 
 // ツリーの各ノードを扱うクラス
 class Node {
-private :
+private:
 	Point point;
 	Node *left;
 	Node *right;
-public :
+public:
 	Node() {
 		this->left = nullptr;
 		this->right = nullptr;
@@ -75,7 +75,7 @@ vector<T> divisionVector(std::vector<T> v, int from, int to) {
 
 	//　分離する場所がベクターのサイズ外の場合もとのゔvectorを返す
 	if (v.size() <= from || v.size() <= to ||
-			0 > from || 0 > to || (to < from)) {
+		0 > from || 0 > to || (to < from)) {
 		return v;
 	}
 
@@ -88,10 +88,10 @@ vector<T> divisionVector(std::vector<T> v, int from, int to) {
 
 // ２次元木
 class KDTree {
-private :
+private:
 	Node *root;
 
-public :
+public:
 	KDTree() {
 		this->root = nullptr;
 	}
@@ -101,9 +101,9 @@ public :
 
 		// y軸に沿ってソートする
 		sort(v.begin(), v.end(),
-				[](auto a, auto b) {
-					return a.y < b.y;
-				});
+			[](auto a, auto b) {
+			return a.y < b.y;
+		});
 
 
 		// 中点を取る
@@ -128,36 +128,44 @@ public :
 		// }
 	}
 
-private :
+private:
 	Node *setChildren(std::vector<Point> v, int depth) {
 		// 深さが偶数のときはy軸でソートし、
 		// 基数のときはx軸でソートする。
+		if (v.size() <= 1) {
+			Node *n = new Node();
+			n->setPoint(v[0]);
+			return n;
+		}
 
 		Node *newNode = new Node();
 		if (depth % 2 == 0) {
 			sort(v.begin(), v.end(),
 				[](auto a, auto b) {
-					return a.y < b.y;
-				});
-		} else {
+				return a.y < b.y;
+			});
+		}
+		else {
 			sort(v.begin(), v.end(),
 				[](auto a, auto b) {
-					return a.x < b.x;
-				});
+				return a.x < b.x;
+			});
 		}
 		newNode->setPoint(v[v.size() / 2]);
 
-		if (v.size() / 2 - 1 >= 0 && v.size() > 0) {
+		if (v.size() / 2 - 1 >= 0) {
 			auto leftvector = divisionVector<Point>(v, 0, v.size() / 2 - 1);
 			newNode->setLeft(this->setChildren(leftvector, 1));
-		} else {
+		}
+		else {
 			newNode->setLeft(nullptr);
 		}
 
-		if (v.size() / 2 + 1 < DATA_SIZE && v.size() > 0) {
+		if (v.size() / 2 + 1 < DATA_SIZE && v.size() == v.size() / 2) {
 			auto rightvector = divisionVector<Point>(v, v.size() / 2 + 1, v.size());
-			//newNode->setRight(this->setChildren(rightvector, 1));
-		} else {
+			newNode->setRight(this->setChildren(rightvector, 1));
+		}
+		else {
 			newNode->setRight(nullptr);
 		}
 
@@ -175,8 +183,8 @@ int main(void) {
 	KDTree kd;
 
 	for (int i = 0; i < DATA_SIZE; i++) {
-			Point p = Point(rand() % DATA_SIZE, rand() % DATA_SIZE);
-			Points.push_back(p);
+		Point p = Point(rand() % DATA_SIZE, rand() % DATA_SIZE);
+		Points.push_back(p);
 	}
 
 	// kd木にデータをセットする
